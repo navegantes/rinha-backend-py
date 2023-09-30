@@ -1,0 +1,67 @@
+version: '3.5'
+services:
+  api1: &api # API - Instância 01
+    image: navegantes/rinha_pyfastprisma
+    hostname: api1
+    environment:
+      DATABASE_URL: postgresql://postgres:rinhabackend@db:5432/rinhadb
+    depends_on:
+      - db
+    expose:
+      - "8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.5GB'
+    networks:
+      - rinha-network
+
+  api2: # API - Instância 01
+    <<: *api
+
+  nginx: # Load Balancer
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api1
+      - api2
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.5GB'
+    networks:
+      - rinha-network
+    # volumes:
+    #   - rinhadata:/var/lib/postgresql/data
+
+  db:
+    # Banco de dados
+    image: postgres:15.4
+    container_name: rinha_pg
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: '1.5GB'
+    volumes:
+      - ./inittable.sql:/docker-entrypoint-initdb.d/inittable.sql
+    #   - rinhadata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: rinhabackend
+      POSTGRES_USER: postgres
+      POSTGRES_DB: rinhadb
+    ports:
+      - 5432:5432
+    networks:
+      - rinha-network
+
+networks:
+  rinha-network:
+    name: rinha-net
+    driver: bridge
