@@ -12,7 +12,7 @@
 
 ## Implementações
 
-### 1. ⚡ Python - Fastapi - Prisma ✅
+### 1. [⚡ Python - Fastapi - Prisma](https://github.com/navegantes/rinha-backend-py/tree/main/rinha_pyfastprisma) ✅
 
 - Resultados bem ruins até agora.
 
