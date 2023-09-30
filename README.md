@@ -12,22 +12,14 @@
 
 ## Implementações
 
-### 1. Python
+### 1. ⚡ Python - Fastapi - Prisma ✅
 
-- ⚡ Python - Fastapi - Prisma ✅
-  - Resultados bem ruins até agora.
-- ⚡ Python - SQLAlchemy
-  - Em breve.
-  - Talvez com Flask
+- Resultados bem ruins até agora.
 
-### 2. Node.JS
+### 2. ⚡ Python - SQLAlchemy
 
-- ⚡ Node.JS - Express
-- ⚡ Node.JS - Fastfy
-- ⚡ Node.JS - Koa
-- ORM: Prisma, Type ORM,Sequelize.
-
-### 3. ⚡ Bun JS
+- Em breve.
+- Talvez com Flask
 
 ---
 
