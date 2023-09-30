@@ -4,7 +4,7 @@
 
 Github: [@navegantes](https://github.com/navegantes)
 
-URL do projeto [https://github.com/navegantes/inha-backend](https://github.com/navegantes/rinha-backend)
+URL do projeto [https://github.com/navegantes/rinha-backend](https://github.com/navegantes/rinha-backend)
 
 ## :gear: Technologies
 
