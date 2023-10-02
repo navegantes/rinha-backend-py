@@ -3,12 +3,14 @@ from datetime import datetime
 from fastapi import (
     FastAPI,
     HTTPException,
+    Request,
     status,
 )
-from uuid import UUID, uuid4
+from uuid import uuid4
 from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, UUID4, validator
 
 from src.prisma_client import prismadb
 
@@ -23,18 +25,35 @@ class Pessoa(BaseModel):
     stack: Optional[List[str]] = None
 
 
-# Isso aqui é toque. Pro Id ficar em primeiro
-class PessoaID(BaseModel):
-    id: UUID
+# class PessoaDb(Pessoa):
+#     id: UUID4
 
-
-class PessoaDb(Pessoa, PessoaID):
-    pass
-
+# # Isso aqui é toque. Pro Id ficar em primeiro
+# class PessoaID(BaseModel):
+#     id: UUID4
+# class PessoaDb(Pessoa, PessoaID):
+#     pass
 # -------------------------------
 
 
 app = FastAPI()
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(req: Request, exc: RequestValidationError):
+    details = exc.errors()
+    print("DETAIL", details)
+    # if detail['input'], int)
+    if any(detail['type'] == 'string_type' and isinstance(detail['input'], int) for detail in details):
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content=jsonable_encoder({'detail': details}),
+        )
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({'detail': details}),
+    )
 
 
 @app.get("/")
@@ -46,42 +65,30 @@ async def read_users():
 @app.post("/pessoas")
 async def cria_pessoa(pessoa: Pessoa):
 
-    req_pessoa = Pessoa(**pessoa.model_dump())
-
-    if req_pessoa.nome.isnumeric():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="O campo nome deve ser string e não número"
-        )
-    if req_pessoa.stack is None:
-        req_pessoa.stack = []
-    elif req_pessoa.stack is None and any(item.isnumeric() for item in nova_pessoa.stack):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="O campo stack dever ser uma lista de strings"
-        )
-
     async with prismadb as db:
-        query = await db.pessoas.find_unique(
-            where={'apelido': req_pessoa.apelido},
+        query = await db.pessoas.find_first(
+            where={'apelido': pessoa.apelido},
         )
         if query is not None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"O apelido {req_pessoa.apelido} já existe."
+                detail=f"O apelido {pessoa.apelido} já existe."
             )
+
+        if pessoa.stack is None:
+            pessoa.stack = []
 
         nova_pessoa = await db.pessoas.create(
             data={
-                **req_pessoa.model_dump(),
-                "nascimento": datetime.strptime(req_pessoa.nascimento, "%Y-%m-%d"),
+                **pessoa.model_dump(),
+                "nascimento": datetime.strptime(pessoa.nascimento, "%Y-%m-%d"),
             }
         )
 
     headers = {"Location": f"/pessoas/{nova_pessoa.id}"}
 
     return JSONResponse(
-        content={"created": jsonable_encoder(nova_pessoa)},
+        content={"created": nova_pessoa.id},
         headers=headers,
         status_code=status.HTTP_201_CREATED
     )
@@ -90,22 +97,16 @@ async def cria_pessoa(pessoa: Pessoa):
 @app.get("/pessoas/{id}")
 async def busca_id(id: str):
     async with prismadb as db:
-        pessoa = await db.pessoas.find_unique(
-            where={'id': id},
-        )
+        pessoa = await db.pessoas.find_unique(where={'id': id})
 
         if pessoa is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"A pessoa com ID {id} não existe."
             )
-        pessoa = PessoaDb(
-            **pessoa.model_dump(exclude={"nascimento"}),
-            nascimento=pessoa.nascimento.strftime("%Y-%m-%d")
-        )
 
     return JSONResponse(
-        content=jsonable_encoder(pessoa),
+        content=jsonable_encoder(pessoa.id),
         status_code=status.HTTP_200_OK
     )
 

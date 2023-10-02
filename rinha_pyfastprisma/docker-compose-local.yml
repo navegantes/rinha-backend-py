@@ -16,8 +16,8 @@ services:
         limits:
           cpus: '0.25'
           memory: '0.5GB'
-    # networks:
-    #   - rinha-network
+    networks:
+      - rinha-network
 
   api2: # API - Instância 01
     <<: *api
@@ -36,8 +36,8 @@ services:
         limits:
           cpus: '0.25'
           memory: '0.5GB'
-    # networks:
-    #   - rinha-network
+    networks:
+      - rinha-network
 
   db:
     # Banco de dados
@@ -51,6 +51,7 @@ services:
           memory: '1.5GB'
     volumes:
       - ./inittable.sql:/docker-entrypoint-initdb.d/inittable.sql
+      - ./postgresql.conf:/docker-entrypoint-initdb.d/postgresql.conf
     #   - rinhadata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: rinhabackend
@@ -58,10 +59,10 @@ services:
       POSTGRES_DB: rinhadb
     ports:
       - 5432:5432
-    # networks:
-    #   - rinha-network
+    networks:
+      - rinha-network
 
-# networks:
-#   rinha-network:
-#     name: rinha-net
-#     driver: bridge
+networks:
+  rinha-network:
+    name: rinha-net
+    driver: bridge

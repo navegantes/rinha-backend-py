@@ -6,7 +6,7 @@ Github: [@navegantes](https://github.com/navegantes)
 
 URL do projeto [https://github.com/navegantes/rinha-backend](https://github.com/navegantes/rinha-backend)
 
-## :gear: Technologies
+## :gear: Stack
 
 - [Python](https://www.python.org/)
 - [Fastapi](https://fastapi.tiangolo.com/)
